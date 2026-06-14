@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI销售话术教练 - 房产版</title>
+    <style>
+:root {
+    --primary: #2563eb;
+    --primary-light: #3b82f6;
+    --primary-bg: #eff6ff;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --sidebar-bg: #1e293b;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --text-light: #94a3b8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* ========== 侧边栏 ========== */
+.sidebar {
+    width: 240px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    flex-shrink: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px 32px;
+}
+
+.logo-icon { font-size: 28px; }
+
+.logo-text {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.nav-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 12px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: #e2e8f0;
+}
+
+.nav-item.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.nav-icon { font-size: 18px; }
+
+.sidebar-footer {
+    padding: 20px 24px 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 0 12px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.industry-badge {
+    background: rgba(37,99,235,0.2);
+    color: #60a5fa;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ========== 主内容区 ========== */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: flex; flex-direction: column; height: 100%; }
+
+.tab-header {
+    margin-bottom: 24px;
+}
+
+.tab-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* ========== 话术教练 ========== */
+.coach-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.message {
+    display: flex;
+    gap: 10px;
+    max-width: 85%;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.system-message .message-avatar { background: var(--primary-bg); }
+.user-message .message-avatar { background: #f1f5f9; }
+
+.message-body {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.user-message .message-body {
+    background: var(--primary);
+    color: #fff;
+}
+
+.message-body ul {
+    margin: 8px 0 0 16px;
+}
+
+.message-body li {
+    margin-bottom: 4px;
+}
+
+/* AI教练卡片 */
+.coach-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0;
+    overflow: hidden;
+}
+
+.coach-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--primary-bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.coach-category {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--primary);
+}
+
+.coach-confidence {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.confidence-high { background: #d1fae5; color: #065f46; }
+.confidence-mid { background: #fef3c7; color: #92400e; }
+.confidence-low { background: #f1f5f9; color: #64748b; }
+
+.coach-card-body { padding: 16px; }
+
+.coach-analysis {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary);
+}
+
+.coach-principles {
+    margin-bottom: 16px;
+}
+
+.coach-principles h4, .coach-templates h4 {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.principle-tag {
+    display: inline-block;
+    background: var(--primary-bg);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin: 0 6px 6px 0;
+}
+
+.template-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+}
+
+.template-scenario {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.template-response {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 6px;
+    quotes: "\201C" "\201D";
+}
+
+.template-response::before { content: open-quote; color: var(--primary); }
+.template-response::after { content: close-quote; color: var(--primary); }
+
+.template-technique {
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.closing-tip {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.closing-tip h4 { color: #92400e; margin-bottom: 4px; }
+.closing-tip p { color: #78350f; line-height: 1.7; }
+
+/* ========== 输入区 ========== */
+.chat-input-area {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: #fafafa;
+}
+
+.quick-tags {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    padding: 4px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag:hover {
+    background: var(--primary-bg);
+    border-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.input-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-row input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.btn-primary {
+    padding: 10px 24px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.btn-primary:hover { background: #1d4ed8; }
+.btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.btn-secondary {
+    padding: 8px 16px;
+    background: #f1f5f9;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+/* ========== 角色扮演 ========== */
+.roleplay-container {
+    flex: 1;
+}
+
+.scenario-selector h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+}
+
+.scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.scenario-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px;
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.scenario-card:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.scenario-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-bg);
+}
+
+.scenario-icon { font-size: 32px; }
+.scenario-name { font-weight: 600; font-size: 15px; }
+.scenario-desc { font-size: 12px; color: var(--text-secondary); }
+
+.roleplay-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: 16px;
+}
+
+/* 角色扮演反馈卡片 */
+.feedback-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.feedback-score {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.score-high { color: var(--success); }
+.score-mid { color: var(--warning); }
+.score-low { color: var(--danger); }
+
+.feedback-comment {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+/* ========== 知识库 ========== */
+.knowledge-container {
+    flex: 1;
+}
+
+.knowledge-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    flex: 1;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.knowledge-categories {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.knowledge-category-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.knowledge-category-card h4 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.knowledge-category-card .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.keyword-tag {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.knowledge-category-card .template-count {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+    .sidebar { width: 72px; }
+    .logo-text, .nav-item span:not(.nav-icon), .sidebar-footer span {
+        display: none;
+    }
+    .nav-item { justify-content: center; padding: 12px; }
+    .logo { justify-content: center; padding: 0 0 24px; }
+    .main-content { padding: 20px; }
+    .scenario-grid, .knowledge-categories { grid-template-columns: 1fr; }
+}
+// 内容由AI生成，仅供参考
+
+</style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">SalesCoach</span>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="coach">
+                    <span class="nav-icon">🎯</span>
+                    <span>话术教练</span>
+                </button>
+                <button class="nav-item" data-tab="roleplay">
+                    <span class="nav-icon">🎭</span>
+                    <span>角色扮演</span>
+                </button>
+                <button class="nav-item" data-tab="knowledge">
+                    <span class="nav-icon">📚</span>
+                    <span>知识库</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>AI引擎就绪</span>
+                </div>
+                <div class="industry-badge">房产销售 v1.0</div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 话术教练 Tab -->
+            <section id="tab-coach" class="tab-content active">
+                <div class="tab-header">
+                    <h2>话术教练</h2>
+                    <p class="subtitle">输入客户异议，AI即时生成最优应对策略</p>
+                </div>
+
+                <div class="coach-chat">
+                    <div class="chat-messages" id="coach-messages">
+                        <div class="message system-message">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-body">
+                                <p>你好！我是你的专属AI销售教练。</p>
+                                <p>请把客户的原话或异议告诉我，比如：</p>
+                                <ul>
+                                    <li>"你们这房子太贵了"</li>
+                                    <li>"我再考虑考虑吧"</li>
+                                    <li>"隔壁楼盘比你们便宜"</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <div class="quick-tags">
+                            <span class="tag" data-text="你们这房子太贵了">太贵了</span>
+                            <span class="tag" data-text="我再考虑考虑">再考虑</span>
+                            <span class="tag" data-text="隔壁楼盘比你们便宜多了">竞品对比</span>
+                            <span class="tag" data-text="会不会烂尾啊">怕烂尾</span>
+                            <span class="tag" data-text="面积太小了">面积小</span>
+                        </div>
+                        <div class="input-row">
+                            <input type="text" id="coach-input" placeholder="输入客户异议，如：你们这个价格太高了..."
+                                   autocomplete="off">
+                            <button id="coach-send-btn" class="btn-primary">发送</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 角色扮演 Tab -->
+            <section id="tab-roleplay" class="tab-content">
+                <div class="tab-header">
+                    <h2>角色扮演训练</h2>
+                    <p class="subtitle">选择场景，模拟真实客户刁难，AI即时点评你的应对</p>
+                </div>
+                <div class="roleplay-container">
+                    <div class="scenario-selector">
+                        <h3>选择训练场景</h3>
+                        <div class="scenario-grid" id="scenario-grid">
+                            <button class="scenario-card" data-scenario="价格异议">
+                                <span class="scenario-icon">💰</span>
+                                <span class="scenario-name">价格异议</span>
+                                <span class="scenario-desc">客户嫌贵，要求降价</span>
+                            </button>
+                            <button class="scenario-card" data-scenario="决策拖延">
+                                <span class="scenario-icon">⏰</span>
+                                <span class="scenario-name">决策拖延</span>
+                                <span class="scenario-desc">客户犹豫不决，一直拖</span>
+                            </button>
+                            <button class="scenario-card" data-scenario="竞品比较">
+                                <span class="scenario-icon">⚔️</span>
+                                <span class="scenario-name">竞品比较</span>
+                                <span class="scenario-desc">客户拿竞品说事</span>
+                            </button>
+                            <button class="scenario-card" data-scenario="信任建立">
+                                <span class="scenario-icon">🤝</span>
+                                <span class="scenario-name">信任建立</span>
+                                <span class="scenario-desc">客户不信任开发商</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="roleplay-chat" id="roleplay-chat" style="display:none;">
+                        <div class="chat-messages" id="roleplay-messages"></div>
+                        <div class="chat-input-area">
+                            <div class="input-row">
+                                <input type="text" id="roleplay-input" placeholder="输入你的应对话术..."
+                                       autocomplete="off">
+                                <button id="roleplay-send-btn" class="btn-primary">提交回答</button>
+                            </div>
+                            <button class="btn-secondary" id="roleplay-reset">重新选择场景</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 知识库 Tab -->
+            <section id="tab-knowledge" class="tab-content">
+                <div class="tab-header">
+                    <h2>知识库</h2>
+                    <p class="subtitle">房产销售话术体系总览</p>
+                </div>
+                <div class="knowledge-container" id="knowledge-container">
+                    <div class="loading">加载中...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+// ===== 内嵌知识库 =====
+const KNOWLEDGE_BASE = {"industry": "房产销售", "version": "1.0", "categories": {"价格异议": {"keywords": ["太贵", "贵了", "不值", "预算", "降价", "优惠", "打折", "买不起"], "principles": ["先认同客户感受，再解释价值而非价格", "用周边楼盘价格对比制造锚定效应", "量化房屋的增值潜力和居住价值"], "templates": [{"scenario": "客户说太贵了", "response": "王先生，我完全理解您对价格的考虑，买房是大事。不过咱们换个角度看：这套房均摊到70年产权，每天不到50块钱，也就是一顿饭钱。而且周边地铁年底通车，到时候至少涨15%，等于您现在买就是在赚钱。", "technique": "价格均摊法 + 未来增值锚定"}, {"scenario": "客户说隔壁楼盘更便宜", "response": "您说得对，隔壁确实单价低一些。但您注意到没有，他们是毛坯交付，咱们是精装+全屋智能家居，光装修费就省了20万。而且咱们物业是万科，未来二手房溢价至少高出10%。", "technique": "价值差异化对比"}, {"scenario": "客户要求打折", "response": "刘姐，说实话这个盘从开盘到现在已经涨了两轮了，现在的价格是集团统一定的，我真没权限动。不过我可以帮您争取一下，看能不能送个车位使用权或者免两年物业费，这样算下来也省了小三万了。", "technique": "让步替代法"}]}, "决策拖延": {"keywords": ["再看看", "考虑考虑", "回去商量", "不着急", "下次", "比较比较", "犹豫"], "principles": ["制造合理的紧迫感，但不用虚假话术", "挖掘客户真正的顾虑点", "用已购客户的案例增加信心"], "templates": [{"scenario": "客户说再考虑考虑", "response": "张哥，考虑是应该的。我想确认一下，您是觉得户型不太满意，还是对周边配套有顾虑？您跟我说实话，我才能帮您想办法。", "technique": "追问法 - 定位真实抗拒点"}, {"scenario": "客户说要回去跟家人商量", "response": "完全应该商量。要不这样，您方便的话现在给嫂子打个视频，我帮您把户型亮点和周边规划跟她介绍一遍，她有什么问题直接问我，比您转述更清楚。", "technique": "即时推进法"}, {"scenario": "客户说不着急", "response": "李姐，不着急是对的。不过我得跟您说个实际情况：您现在看的这个中楼层东南向就剩最后两套了，昨天下午有个客户说今天带定金来。您要真心喜欢，我建议先交个意向金把房源锁住，这个随时可退的。", "technique": "稀缺性+低门槛锁定"}]}, "竞品比较": {"keywords": ["XX楼盘", "那边", "别家", "其他", "比较", "哪个好"], "principles": ["不贬低竞品，用客观事实说话", "引导客户关注自己的核心需求", "用第三方数据增加说服力"], "templates": [{"scenario": "客户拿竞品楼盘对比", "response": "您功课做得真细致。XX盘确实也不错，不过它在快速路边上，噪音测试数据我是有的。咱们这个盘退线200米，还做了隔音绿化带。您是自住的话，安静程度直接影响睡眠质量，这个差距住进去才知道。", "technique": "客观对比+居住体验引导"}]}, "信任建立": {"keywords": ["靠谱", "会不会烂尾", "开发商", "质量", "维权", "交房"], "principles": ["用事实和数据建立信任", "展示透明度，主动提供可验证信息", "借力第三方权威背书"], "templates": [{"scenario": "客户担心烂尾", "response": "这个担心太正常了，这两年确实不少。我给您看三个东西：一是我们的五证，原件就在售楼处公示；二是银行资金监管账户的截图，您的房款直接进监管户，开发商动不了；三是我们一期已经交付了，您可以随便找个一期业主聊聊。", "technique": "三证法 - 证据链打消顾虑"}]}, "户型挑剔": {"keywords": ["太小", "朝向", "采光", "通风", "户型", "面积", "格局"], "principles": ["不否认户型不足，用设计亮点弥补", "引导客户从生活场景出发感受空间", "提供改造方案增加附加值"], "templates": [{"scenario": "客户觉得面积太小", "response": "87平确实不算大，但咱们得房率做到了82%，实际使用面积比隔壁105平的还多3平米。而且这个户型设计师专门做了零过道设计，您看这个客厅开间3.8米，放个75寸电视完全够，小户型做出了大空间感。", "technique": "得房率对比+设计亮点"}]}}, "closing_scripts": [{"name": "二选一促单法", "script": "那咱们今天就定下来吧，您是偏好15楼还是18楼？15楼视野开阔，18楼数字吉利，您看哪一个？"}, {"name": "假设成交法", "script": "如果今天定下来的话，您是打算全款还是按揭？我去帮您算一下具体的月供方案。"}, {"name": "优惠截止法", "script": "跟您说实话，这个98折优惠今天最后一天，明天集团就收回去了。要不咱们先把认购书签了把这个折扣锁住？"}]};
+
+// ===== 核心逻辑（从app.py移植） =====
+function matchCategory(userInput) {
+    const input = userInput.toLowerCase();
+    let bestMatch = null;
+    let bestScore = 0;
+    for (const [catName, catData] of Object.entries(KNOWLEDGE_BASE.categories)) {
+        let score = 0;
+        for (const kw of catData.keywords) {
+            if (input.includes(kw)) score++;
+        }
+        if (score > bestScore) {
+            bestScore = score;
+            bestMatch = catName;
+        }
+    }
+    return { bestMatch, bestScore };
+}
+
+function generateCoaching(userInput, matchedCategory, matchScore) {
+    const result = {
+        matched_category: matchedCategory || "通用应对",
+        confidence: matchScore >= 2 ? "高" : (matchScore === 1 ? "中" : "低"),
+        templates: [],
+        principles: [],
+        analysis: "",
+        suggested_closing: null,
+    };
+
+    if (matchedCategory && KNOWLEDGE_BASE.categories[matchedCategory]) {
+        const cat = KNOWLEDGE_BASE.categories[matchedCategory];
+        result.principles = cat.principles;
+        result.templates = cat.templates;
+        if (matchScore >= 2) {
+            result.analysis = `客户的核心抗拒点明确属于「${matchedCategory}」类型。建议按以下策略应对。`;
+        } else if (matchScore === 1) {
+            result.analysis = `客户可能涉及「${matchedCategory}」方面的顾虑，但表达不够明确。建议先通过追问确认真实想法。`;
+        } else {
+            result.analysis = "客户表达不够明确，建议先使用开放式问题探询真实需求，不要急于推销。";
+        }
+    } else {
+        result.analysis = "未检测到明确的异议类型。建议先建立信任，了解客户的核心需求（预算、面积、学区、通勤等），再针对性推荐。";
+        result.templates = [{
+            scenario: "通用探询",
+            response: "买房是大事，不急。您方便跟我说说，您买房最看重哪三个方面？是学区、通勤还是户型？这样我能帮您精准匹配。",
+            technique: "需求挖掘三问",
+        }];
+    }
+
+    if (KNOWLEDGE_BASE.closing_scripts && KNOWLEDGE_BASE.closing_scripts.length > 0) {
+        result.suggested_closing = KNOWLEDGE_BASE.closing_scripts[
+            Math.floor(Math.random() * KNOWLEDGE_BASE.closing_scripts.length)
+        ];
+    }
+    return result;
+}
+
+function generateRoleplayFeedback(scenarioContext) {
+    const feedbackTemplates = {
+        "价格异议": [
+            { score: 85, comment: "价格均摊法运用得当，但可以补充周边配套的增值预期，让客户感受到'现在买就是省钱'。" },
+            { score: 72, comment: "直接降价回应容易让客户觉得还有空间。建议先强调价值差异，再用非价格让步（物业费/车位）替代降价。" },
+        ],
+        "决策拖延": [
+            { score: 90, comment: "追问法用得漂亮！定位到真实顾虑后针对性解决，节奏控制得很好。" },
+            { score: 65, comment: "'不着急可以等'这种话术等于放弃跟进。应该用稀缺性+低门槛锁定，给客户一个'现在行动'的理由。" },
+        ],
+    };
+    const defaultFeedback = [
+        { score: 80, comment: "整体应对不错。注意多使用'我们'而非'我'，增强客户信任感。" },
+        { score: 70, comment: "话术方向对，但缺少数据支撑。加入具体数字（如涨幅百分比、得房率数据）会更有说服力。" },
+    ];
+    const pool = feedbackTemplates[scenarioContext] || defaultFeedback;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ===== 重写fetch拦截 =====
+const originalFetch = window.fetch;
+window.fetch = function(url, options) {
+    const urlStr = typeof url === 'string' ? url : url.url || '';
+    
+    if (urlStr === '/api/coach') {
+        const body = JSON.parse(options.body || '{}');
+        const msg = body.message || '';
+        const { bestMatch, bestScore } = matchCategory(msg);
+        const result = generateCoaching(msg, bestMatch, bestScore);
+        return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(result)
+        });
+    }
+    
+    if (urlStr === '/api/roleplay') {
+        const body = JSON.parse(options.body || '{}');
+        const feedback = generateRoleplayFeedback(body.context || '通用应对');
+        return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(feedback)
+        });
+    }
+    
+    if (urlStr === '/api/knowledge') {
+        const categories = Object.keys(KNOWLEDGE_BASE.categories);
+        return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+                industry: KNOWLEDGE_BASE.industry,
+                categories: categories,
+                closing_scripts_count: (KNOWLEDGE_BASE.closing_scripts || []).length
+            })
+        });
+    }
+    
+    return originalFetch.apply(this, arguments);
+};
+
+// ===== 原始app.js逻辑 =====
+/**
+ * AI销售话术教练 - 前端交互逻辑
+ */
+
+// ==================== Tab 切换 ====================
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        const tabId = item.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+
+        if (tabId === 'knowledge') {
+            loadKnowledgeBase();
+        }
+    });
+});
+
+// ==================== 话术教练 ====================
+const coachMessages = document.getElementById('coach-messages');
+const coachInput = document.getElementById('coach-input');
+const coachSendBtn = document.getElementById('coach-send-btn');
+
+// 快速标签点击
+document.querySelectorAll('.tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+        coachInput.value = tag.dataset.text;
+        sendCoachMessage();
+    });
+});
+
+coachSendBtn.addEventListener('click', sendCoachMessage);
+coachInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendCoachMessage();
+});
+
+async function sendCoachMessage() {
+    const message = coachInput.value.trim();
+    if (!message) return;
+
+    // 显示用户消息
+    addMessage(coachMessages, 'user', message);
+    coachInput.value = '';
+    coachSendBtn.disabled = true;
+
+    // 显示加载中
+    const loadingMsg = addMessage(coachMessages, 'system', '🤔 分析中...');
+
+    try {
+        const response = await fetch('/api/coach', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message }),
+        });
+
+        const data = await response.json();
+
+        // 移除加载消息
+        loadingMsg.remove();
+
+        // 渲染AI教练卡片
+        renderCoachCard(data);
+    } catch (error) {
+        loadingMsg.remove();
+        addMessage(coachMessages, 'system', '抱歉，服务暂时不可用，请稍后重试。');
+    } finally {
+        coachSendBtn.disabled = false;
+        coachInput.focus();
+    }
+}
+
+function renderCoachCard(data) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message system-message';
+
+    const confidenceClass = data.confidence === '高' ? 'confidence-high' :
+                            data.confidence === '中' ? 'confidence-mid' : 'confidence-low';
+
+    let html = '<div class="message-avatar">🤖</div>';
+    html += '<div class="message-body coach-card">';
+
+    // Card header
+    html += '<div class="coach-card-header">';
+    html += `<span class="coach-category">📋 ${data.matched_category}</span>`;
+    html += `<span class="coach-confidence ${confidenceClass}">匹配度: ${data.confidence}</span>`;
+    html += '</div>';
+
+    // Card body
+    html += '<div class="coach-card-body">';
+
+    // 分析
+    html += `<div class="coach-analysis">💡 ${data.analysis}</div>`;
+
+    // 策略原则
+    if (data.principles && data.principles.length > 0) {
+        html += '<div class="coach-principles"><h4>核心策略</h4>';
+        data.principles.forEach(p => {
+            html += `<span class="principle-tag">${p}</span>`;
+        });
+        html += '</div>';
+    }
+
+    // 话术模板
+    if (data.templates && data.templates.length > 0) {
+        html += '<div class="coach-templates"><h4>推荐话术</h4>';
+        data.templates.forEach(t => {
+            html += '<div class="template-item">';
+            html += `<div class="template-scenario">场景：${t.scenario}</div>`;
+            html += `<div class="template-response">${t.response}</div>`;
+            html += `<div class="template-technique">技法：${t.technique}</div>`;
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    // 促单技巧
+    if (data.suggested_closing) {
+        html += '<div class="closing-tip">';
+        html += `<h4>🔥 进阶促单：${data.suggested_closing.name}</h4>`;
+        html += `<p>${data.suggested_closing.script}</p>`;
+        html += '</div>';
+    }
+
+    html += '</div></div>';
+    wrapper.innerHTML = html;
+    coachMessages.appendChild(wrapper);
+    coachMessages.scrollTop = coachMessages.scrollHeight;
+}
+
+function addMessage(container, type, text) {
+    const div = document.createElement('div');
+    div.className = `message ${type}-message`;
+
+    const avatar = type === 'user' ? '👤' : '🤖';
+    div.innerHTML = `
+        <div class="message-avatar">${avatar}</div>
+        <div class="message-body"><p>${text}</p></div>
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+}
+
+// ==================== 角色扮演 ====================
+let currentScenario = null;
+const scenarioGrid = document.getElementById('scenario-grid');
+const roleplayChat = document.getElementById('roleplay-chat');
+const roleplayMessages = document.getElementById('roleplay-messages');
+const roleplayInput = document.getElementById('roleplay-input');
+const roleplaySendBtn = document.getElementById('roleplay-send-btn');
+const roleplayReset = document.getElementById('roleplay-reset');
+
+const scenarioPrompts = {
+    '价格异议': '（模拟客户）你们的房子太贵了，隔壁XX楼盘同样的面积便宜了将近20万，你们凭什么卖这么贵？',
+    '决策拖延': '（模拟客户）房子看着还行，但我还是想再考虑考虑，毕竟买房不是小事，我回去跟家人商量一下再说吧。',
+    '竞品比较': '（模拟客户）我去看了XX楼盘，人家送车位还送全屋家电，你们这边有什么优惠？',
+    '信任建立': '（模拟客户）说实话现在烂尾楼那么多，我怎么相信你们开发商没问题？万一交了钱跑路了怎么办？',
+};
+
+scenarioGrid.addEventListener('click', (e) => {
+    const card = e.target.closest('.scenario-card');
+    if (!card) return;
+
+    currentScenario = card.dataset.scenario;
+    document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+
+    // 显示角色扮演对话区
+    roleplayChat.style.display = 'flex';
+    roleplayMessages.innerHTML = '';
+
+    // 模拟客户发难
+    const clientMsg = scenarioPrompts[currentScenario];
+    addMessage(roleplayMessages, 'user', clientMsg);
+    addMessage(roleplayMessages, 'system', '请用你的最佳话术回应这位客户，我会为你打分和点评。');
+});
+
+roleplaySendBtn.addEventListener('click', submitRoleplayReply);
+roleplayInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitRoleplayReply();
+});
+
+async function submitRoleplayReply() {
+    const reply = roleplayInput.value.trim();
+    if (!reply || !currentScenario) return;
+
+    addMessage(roleplayMessages, 'user', reply, true);
+    roleplayInput.value = '';
+    roleplaySendBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/roleplay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reply, context: currentScenario }),
+        });
+        const data = await response.json();
+        renderFeedback(data);
+    } catch (error) {
+        addMessage(roleplayMessages, 'system', '评分服务暂不可用。');
+    } finally {
+        roleplaySendBtn.disabled = false;
+    }
+}
+
+function renderFeedback(data) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message system-message';
+
+    const scoreClass = data.score >= 85 ? 'score-high' :
+                       data.score >= 70 ? 'score-mid' : 'score-low';
+
+    let html = '<div class="message-avatar">🤖</div>';
+    html += '<div class="message-body feedback-card">';
+    html += '<div class="feedback-header">';
+    html += `<span>📊 教练点评</span>`;
+    html += `<span class="feedback-score ${scoreClass}">${data.score}分</span>`;
+    html += '</div>';
+    html += `<div class="feedback-comment">${data.comment}</div>`;
+    html += '</div>';
+
+    wrapper.innerHTML = html;
+    roleplayMessages.appendChild(wrapper);
+    roleplayMessages.scrollTop = roleplayMessages.scrollHeight;
+}
+
+roleplayReset.addEventListener('click', () => {
+    currentScenario = null;
+    roleplayChat.style.display = 'none';
+    roleplayMessages.innerHTML = '';
+    roleplayInput.value = '';
+    document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+});
+
+// ==================== 知识库 ====================
+async function loadKnowledgeBase() {
+    const container = document.getElementById('knowledge-container');
+    if (container.dataset.loaded === 'true') return;
+
+    try {
+        const response = await fetch('/api/knowledge');
+        const data = await response.json();
+
+        let html = '<div class="knowledge-stats">';
+        html += `<div class="stat-card"><div class="stat-value">${data.categories.length}</div><div class="stat-label">话术分类</div></div>`;
+        html += `<div class="stat-card"><div class="stat-value">${data.closing_scripts_count}</div><div class="stat-label">促单脚本</div></div>`;
+        html += `<div class="stat-card"><div class="stat-value">${data.industry}</div><div class="stat-label">当前行业</div></div>`;
+        html += '</div>';
+
+        html += '<div class="knowledge-categories">';
+        data.categories.forEach(cat => {
+            html += '<div class="knowledge-category-card">';
+            html += `<h4>${cat}</h4>`;
+            html += `<div class="template-count">包含多个话术模板</div>`;
+            html += '</div>';
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+        container.dataset.loaded = 'true';
+    } catch (error) {
+        container.innerHTML = '<div class="loading">加载失败</div>';
+    }
+}
+// 内容由AI生成，仅供参考
+
+</script>
+</body>
+</html>
